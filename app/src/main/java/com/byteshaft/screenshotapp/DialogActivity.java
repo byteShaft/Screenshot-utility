@@ -1,8 +1,10 @@
 package com.byteshaft.screenshotapp;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -53,7 +55,10 @@ public class DialogActivity extends Activity implements View.OnClickListener {
                 finish();
                 break;
             case R.id.button_delete:
-                Toast.makeText(this, "OK", Toast.LENGTH_SHORT).show();
+                File file = new File(imagePath);
+                file.delete();
+                getApplicationContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
+                finish();
 
                 break;
             case R.id.button_share:
