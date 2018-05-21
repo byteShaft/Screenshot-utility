@@ -61,10 +61,8 @@ public class DialogActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.button_share:
                 Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.putExtra(Intent.EXTRA_TEXT, "Hey view/download this image");
                 String path = MediaStore.Images.Media.insertImage(getContentResolver(), myBitmap, "", null);
                 Uri screenshotUri = Uri.parse(path);
-
                 intent.putExtra(Intent.EXTRA_STREAM, screenshotUri);
                 intent.setType("image/*");
                 startActivity(Intent.createChooser(intent, "Share image via..."));
