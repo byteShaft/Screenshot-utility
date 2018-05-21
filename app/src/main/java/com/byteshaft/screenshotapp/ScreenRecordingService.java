@@ -10,15 +10,16 @@ import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaScannerConnection;
-import android.media.RingtoneManager;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -272,6 +273,14 @@ public class ScreenRecordingService extends Service {
         String mPath = Environment.getExternalStorageDirectory() + File.separator +
                 getString(R.string.app_name);
         Toast.makeText(this, mPath + File.separator + nameOfTheFile, Toast.LENGTH_SHORT).show();
+
+        Intent imageIntent = new Intent(getApplicationContext(), DialogActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putString("image", mPath + File.separator + nameOfTheFile + ".png");
+        imageIntent.putExtras(bundle);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(imageIntent);
+        startActivity(imageIntent);
+
 //        Intent i =
 //                new Intent(this, ScreenRecordingService.class)
 //                        .putExtra(ScreenRecordingService.EXTRA_RESULT_CODE, resultCode)
