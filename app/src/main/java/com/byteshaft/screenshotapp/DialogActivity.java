@@ -6,12 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.provider.MediaStore;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.io.File;
 
@@ -22,6 +21,7 @@ public class DialogActivity extends Activity implements View.OnClickListener {
     private ImageButton mButtonShare;
     private ImageView mScreenshot;
     private String imagePath = null;
+    private Bitmap myBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,12 +37,10 @@ public class DialogActivity extends Activity implements View.OnClickListener {
         mButtonClose.setOnClickListener(this);
         mButtonDelete.setOnClickListener(this);
         mButtonShare.setOnClickListener(this);
-        Log.wtf("Image file ", imagePath);
-
         File imgFile = new File(imagePath);
 
         if (imgFile.exists()) {
-            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             mScreenshot.setImageBitmap(myBitmap);
 
         }
@@ -62,7 +60,14 @@ public class DialogActivity extends Activity implements View.OnClickListener {
 
                 break;
             case R.id.button_share:
-                Toast.makeText(this, "OK", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.putExtra(Intent.EXTRA_TEXT, "Hey view/download this image");
+                String path = MediaStore.Images.Media.insertImage(getContentResolver(), myBitmap, "", null);
+                Uri screenshotUri = Uri.parse(path);
+
+                intent.putExtra(Intent.EXTRA_STREAM, screenshotUri);
+                intent.setType("image/*");
+                startActivity(Intent.createChooser(intent, "Share image via..."));
                 break;
         }
     }
