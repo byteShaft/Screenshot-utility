@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,6 +62,7 @@ public class ScreenRecordingService extends Service {
     private Intent resultData;
     private WindowManager.LayoutParams params;
     private boolean clicked = false;
+    private String nameOfTheFile = "";
 
     public ScreenRecordingService() {
     }
@@ -158,8 +160,8 @@ public class ScreenRecordingService extends Service {
                         if (Xdiff < 10 && Ydiff < 10) {
                             Date now = new Date();
                             android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now);
+                            nameOfTheFile = now.toString();
                             startCapture(now.toString());
-                            Log.i("TAG", "click");
                             mFloatingView.setVisibility(View.GONE);
                             mWindowManager.removeViewImmediate(mFloatingView);
                         }
@@ -267,6 +269,9 @@ public class ScreenRecordingService extends Service {
             vdisplay.release();
             projection = null;
         }
+        String mPath = Environment.getExternalStorageDirectory() + File.separator +
+                getString(R.string.app_name);
+        Toast.makeText(this, mPath + File.separator + nameOfTheFile, Toast.LENGTH_SHORT).show();
 //        Intent i =
 //                new Intent(this, ScreenRecordingService.class)
 //                        .putExtra(ScreenRecordingService.EXTRA_RESULT_CODE, resultCode)
