@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "294617427507",
+    "firebase_url": "https://screenshot-1b66c.firebaseio.com",
+    "project_id": "screenshot-1b66c",
+    "storage_bucket": "screenshot-1b66c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:294617427507:android:d8cc491b8c1f31af",
+        "android_client_info": {
+          "package_name": "com.byteshaft.screenshotapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "294617427507-27snp1egl1g6jf3sl8ci8cvscjo54p9a.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOdxZo_gZH5cqHg3Gcj_T-3kuhKNyA5J8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
