@@ -25,6 +25,8 @@ import android.view.Surface;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
+import static com.byteshaft.screenshotapp.ScreenRecordingService.appendLog;
+
 public class ImageTransmogrifier implements ImageReader.OnImageAvailableListener {
 
   private final int width;
@@ -61,6 +63,9 @@ public class ImageTransmogrifier implements ImageReader.OnImageAvailableListener
   @Override
   public void onImageAvailable(ImageReader reader) {
     final Image image=imageReader.acquireLatestImage();
+    appendLog(fileName + "onImageAvailable start...");
+
+    appendLog(fileName + "onImageAvailable image" + String.valueOf(image == null));
 
     if (image!=null) {
       Image.Plane[] planes=image.getPlanes();
@@ -69,14 +74,19 @@ public class ImageTransmogrifier implements ImageReader.OnImageAvailableListener
       int rowStride=planes[0].getRowStride();
       int rowPadding=rowStride - pixelStride * width;
       int bitmapWidth=width + rowPadding / pixelStride;
-
+      appendLog(fileName + "onImageAvailable latest bitmap" + String.valueOf(latestBitmap == null));
+      if (latestBitmap != null) {
+        appendLog(fileName + "onImageAvailable latest bitmap width" + String.valueOf(latestBitmap.getWidth()));
+        appendLog(fileName + "onImageAvailable latest bitmap height" + String.valueOf(latestBitmap.getHeight()));
+      }
+      appendLog(fileName + "onImageAvailable latest bitmap width" + String.valueOf(bitmapWidth));
+      appendLog(fileName + "onImageAvailable latest bitmap height" + String.valueOf(height));
       if (latestBitmap == null ||
           latestBitmap.getWidth() != bitmapWidth ||
           latestBitmap.getHeight() != height) {
         if (latestBitmap != null) {
           latestBitmap.recycle();
         }
-
         latestBitmap= Bitmap.createBitmap(bitmapWidth,
             height, Bitmap.Config.ARGB_8888);
       }

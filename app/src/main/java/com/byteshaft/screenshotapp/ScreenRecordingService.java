@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
@@ -29,9 +30,14 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class ScreenRecordingService extends Service {
@@ -64,6 +70,7 @@ public class ScreenRecordingService extends Service {
     private WindowManager.LayoutParams params;
     private boolean clicked = false;
     private String nameOfTheFile = "";
+    private static Context sContext;
 
     public ScreenRecordingService() {
     }
@@ -155,14 +162,13 @@ public class ScreenRecordingService extends Service {
                     case MotionEvent.ACTION_UP:
                         int Xdiff = (int) (event.getRawX() - initialTouchX);
                         int Ydiff = (int) (event.getRawY() - initialTouchY);
-
                         //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
                         //So that is click event.
                         if (Xdiff < 10 && Ydiff < 10) {
-                            Date now = new Date();
-                            android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now);
-                            nameOfTheFile = now.toString();
-                            startCapture(now.toString());
+                            nameOfTheFile = getCurrentTimeAndDate();
+                            appendLog(nameOfTheFile+ " OVERLAY_CLICKED");
+                            startCapture(nameOfTheFile);
+                            appendLog(nameOfTheFile+ "startCapture");
                             mFloatingView.setVisibility(View.GONE);
                             mWindowManager.removeViewImmediate(mFloatingView);
                         }
@@ -181,17 +187,22 @@ public class ScreenRecordingService extends Service {
         });
     }
 
+    public static String getCurrentTimeAndDate() {
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("ddMMyyyy-HHmmss");
+        return df.format(c.getTime());
+    }
+
     @Override
     public int onStartCommand(Intent i, int flags, int startId) {
+        sContext = getApplicationContext();
         if (i.getAction() == null) {
             resultCode = i.getIntExtra(EXTRA_RESULT_CODE, 1337);
             resultData = i.getParcelableExtra(EXTRA_RESULT_INTENT);
             foregroundify();
         } else if (ACTION_RECORD.equals(i.getAction())) {
             if (resultData != null) {
-                Date now = new Date();
-                android.text.format.DateFormat.format("yyyy-MM-dd_hh:mm:ss", now);
-                startCapture(now.toString());
+                startCapture(getCurrentTimeAndDate());
             } else {
             }
         } else if (ACTION_SHUTDOWN.equals(i.getAction())) {
@@ -234,16 +245,19 @@ public class ScreenRecordingService extends Service {
                 if (!folder.exists()) {
                     folder.mkdirs();
                 }
-                File file = new File(mPath, (fileName + ".png"));
+                File file = new File(mPath, ("Screenshot_"+fileName + ".png"));
                 if (!file.exists()) {
                     try {
                         file.createNewFile();
+                        appendLog(fileName + "create new file");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 } else {
+                    appendLog(fileName + "!create new file");
                     file.delete();
                 }
+                appendLog(fileName + " starting writting to file " + file.getAbsolutePath());
                 try {
                     FileOutputStream fos = new FileOutputStream(file);
                     fos.write(png);
@@ -256,6 +270,8 @@ public class ScreenRecordingService extends Service {
                             new String[]{"image/png"},
                             null);
                 } catch (Exception e) {
+                    appendLog("exception " + e.getLocalizedMessage() + " cause " + e.getCause() +
+                    "stacktrace" + e.getStackTrace());
                     Log.e(getClass().getSimpleName(), "Exception writing out screenshot", e);
                 }
                 processingImage = false;
@@ -270,13 +286,15 @@ public class ScreenRecordingService extends Service {
             vdisplay.release();
             projection = null;
         }
+        appendLog("END stopping capture");
         String mPath = Environment.getExternalStorageDirectory() + File.separator +
                 getString(R.string.app_name);
         Toast.makeText(this, mPath + File.separator + nameOfTheFile, Toast.LENGTH_SHORT).show();
 
         Intent imageIntent = new Intent(getApplicationContext(), DialogActivity.class);
+        imageIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Bundle bundle = new Bundle();
-        bundle.putString("image", mPath + File.separator + nameOfTheFile + ".png");
+        bundle.putString("image", mPath + File.separator + ("Screenshot_"+nameOfTheFile + ".png"));
         imageIntent.putExtras(bundle);
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(imageIntent);
         startActivity(imageIntent);
@@ -299,7 +317,9 @@ public class ScreenRecordingService extends Service {
                 vdisplay.release();
             }
         };
-
+        appendLog(fileName +"project " + String.valueOf(projection == null));
+        appendLog(fileName +"ImageTransmogrifier" + String.valueOf(it == null));
+        appendLog(fileName +"vdisplay" + String.valueOf(vdisplay == null));
         vdisplay = projection.createVirtualDisplay("ScreenShot App",
                 it.getWidth(), it.getHeight(),
                 getResources().getDisplayMetrics().densityDpi,
@@ -345,7 +365,35 @@ public class ScreenRecordingService extends Service {
         return (PendingIntent.getService(this, 0, i, 0));
     }
 
-
-    // new
+    public static void appendLog(String text) {
+        String mPath = Environment.getExternalStorageDirectory() + File.separator +
+                sContext.getString(R.string.app_name);
+        File logFile = new File(mPath, "log.file");
+        if (!logFile.exists())
+        {
+            try
+            {
+                logFile.createNewFile();
+            }
+            catch (IOException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        try
+        {
+            //BufferedWriter for performance, true to set append to file flag
+            BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+            buf.append(text);
+            buf.newLine();
+            buf.close();
+        }
+        catch (IOException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
 }
